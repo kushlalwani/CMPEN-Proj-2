@@ -65,3 +65,4 @@ function task3_1()
     % Save the file    
     save('Project2DataFiles\camera_mats.mat','K1','R1','C1','P1','K2','R2','C2','P2');
     fprintf('\nSaved camera_mats.mat\n');
+end
