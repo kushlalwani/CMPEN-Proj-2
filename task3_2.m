@@ -4,15 +4,13 @@ function task3_2()
     fprintf("\nCamera Matrices Loaded\n")
 
 
-    % Extract the variables from the matrix
-    K1 = cam_mat.K1; R1 = cam_mat.R1; C1 = cam_mat.C1; P1 = cam_mat.P1;
-    K2 = cam_mat.K2; R2 = cam_mat.R2; C2 = cam_mat.C2; P2 = cam_mat.P2;
+    % Extract the projection matrix from the data
+    P1 = cam_mat.P1;
+    P2 = cam_mat.P2;
 
     % Load mocap 3D points
     mocapData = load('Project2DataFiles/mocapPoints3D.mat');
     X = mocapData.pts3D'; % Make sure that the matrix is Nx3
-
-    %X = V'; % Make sure that the matrix is Nx3
 
     N = size(X,1);
     fprintf("Using %d mocap points\n",N)
@@ -38,14 +36,14 @@ function task3_2()
     plot(x1(:,1), x1(:,2), 'r.', 'MarkerSize', 12);
     title('Projected mocap points on Image 1');
     figure(1);
-    exportgraphics(gcf, 'Images\Image1_overlay.png', 'Resolution', 300);  % save Image 1 figure
+    exportgraphics(gcf, 'Images\Image1_overlay.png', 'Resolution', 300);  % save Image 1
     fprintf("Saved Image1_overlay.png\n");
     
 
     figure; imshow(I2); hold on;
     plot(x2(:,1), x2(:,2), 'g.', 'MarkerSize', 12);
     title('Projected mocap points on Image 2');
-    exportgraphics(gcf, 'Images\Image2_overlay.png', 'Resolution', 300);  % save last (Image 2) figure
+    exportgraphics(gcf, 'Images\Image2_overlay.png', 'Resolution', 300);  % save last Image 2
     fprintf("Saved Image2_overlay.png\n");
 
     % Save for next task
