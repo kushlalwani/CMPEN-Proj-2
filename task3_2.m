@@ -37,10 +37,16 @@ function task3_2()
     figure; imshow(I1); hold on;
     plot(x1(:,1), x1(:,2), 'r.', 'MarkerSize', 12);
     title('Projected mocap points on Image 1');
+    figure(1);
+    exportgraphics(gcf, 'Images\Image1_overlay.png', 'Resolution', 300);  % save Image 1 figure
+    fprintf("Saved Image1_overlay.png\n");
+    
 
     figure; imshow(I2); hold on;
     plot(x2(:,1), x2(:,2), 'g.', 'MarkerSize', 12);
     title('Projected mocap points on Image 2');
+    exportgraphics(gcf, 'Images\Image2_overlay.png', 'Resolution', 300);  % save last (Image 2) figure
+    fprintf("Saved Image2_overlay.png\n");
 
     % Save for next task
     save('Project2DataFiles\proj2D_points.mat', 'x1', 'x2', 'X');
