@@ -77,33 +77,10 @@ Use manual correspondence selection to compute 3D measurements:
 - Automate mapping using known camera parameters.
 - Discuss accuracy and potential applications (e.g., movement analysis).
 
----
-
-## Implementation Rules
-- Use **base MATLAB functions only** (no Computer Vision Toolbox or third-party libraries).
-- You may adapt provided sample demos such as:
-  - Eight-point algorithm
-  - Plane warp demo
-- Write all code from scratch otherwise.
-
----
-
-## Submission Format
-Submit a single ZIP file:  
-`Team###.zip` (replace ### with your group number)
-
 **Contents:**
 - `/code/` – MATLAB scripts and functions (`task3_1.m`, `task3_2.m`, etc.)
 - `/report/` – PDF report describing methodology and results
 - Any additional helper functions or visualization files
-
-**Grading Breakdown:**
-| Component | Weight |
-|------------|---------|
-| Code implementation | 50% |
-| Written report | 50% |
-
----
 
 ## Report Guidelines
 Include a section for each task:
@@ -117,7 +94,7 @@ At the end, describe **each team member’s contribution** and any uneven worklo
 
 ---
 
-## 🧠 Learning Outcomes
+## Learning Outcomes
 By completing this project, you will:
 - Understand the geometric relationship between 3D world points and 2D image projections.
 - Implement and verify triangulation and camera calibration principles.
