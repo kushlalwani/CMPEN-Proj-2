@@ -78,8 +78,8 @@ Use manual correspondence selection to compute 3D measurements:
 - Discuss accuracy and potential applications (e.g., movement analysis).
 
 **Contents:**
-- `/code/` – MATLAB scripts and functions (`task3_1.m`, `task3_2.m`, etc.)
-- `/report/` – PDF report describing methodology and results
+- MATLAB scripts and functions (`task3_1.m`, `task3_2.m`, etc.)
+- PDF report describing methodology and results
 - Any additional helper functions or visualization files
 
 ## Report Guidelines
@@ -90,12 +90,11 @@ Include a section for each task:
 - Discuss challenges and insights.
 - If extra credit is completed, add separate labeled sections.
 
-At the end, describe **each team member’s contribution** and any uneven workload distribution.
+At the end, describe each team member’s contribution
 
 ---
 
 ## Learning Outcomes
-By completing this project, you will:
 - Understand the geometric relationship between 3D world points and 2D image projections.
 - Implement and verify triangulation and camera calibration principles.
 - Compute and interpret the fundamental matrix and epipolar geometry.
