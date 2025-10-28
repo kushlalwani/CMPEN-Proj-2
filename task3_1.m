@@ -1,7 +1,7 @@
 function task3_1()
     % load the camera parameters into the file
-    S1 = load("Project2DataFiles/Parameters_V1_1.mat")
-    S2 = load("Project2DataFiles/Parameters_V2_1.mat")
+    S1 = load("Project2DataFiles/Parameters_V1_1.mat");
+    S2 = load("Project2DataFiles/Parameters_V2_1.mat");
 
      
     % Extract the camera structs from the files
@@ -53,16 +53,24 @@ function task3_1()
     fprintf('\nR1 orthonormality error: %.3e   det(R1): %.6f\n', R1_orth_err, det(R1));
     fprintf('R2 orthonormality error: %.3e   det(R2): %.6f\n', R2_orth_err, det(R2));
     
+    t1 = -R1*C1;  t2 = -R2*C2;
+
     % build the projection matrix
-    P1 = K1 * [R1, -R1*C1];
-    P2 = K2 * [R2, -R2*C2];
+    P1 = K1 * [R1, t1];
+    P2 = K2 * [R2, t2];
     
     % Make sure that each camera center maps to a zero vector
     v1 = P1 * [C1;1];
     v2 = P2 * [C2;1];
     fprintf('\n||P1*[C1;1]||: %.3e   ||P2*[C2;1]||: %.3e\n', norm(v1), norm(v2));
+
+    % compare against provided Pmats
+    diffP1 = norm(P1 - cam1.Pmat);
+    diffP2 = norm(P2 - cam2.Pmat);
+    fprintf('||P1 - Pmat1||: %.3e   ||P2 - Pmat2||: %.3e\n', diffP1, diffP2);
+
     
     % Save the file    
-    save('Project2DataFiles\camera_mats.mat','K1','R1','C1','P1','K2','R2','C2','P2');
+    save('Project2DataFiles\camera_mats.mat','K1','R1','C1','t1','P1','K2','R2','C2','P2','t2');
     fprintf('\nSaved camera_mats.mat\n');
 end
