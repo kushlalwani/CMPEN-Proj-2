@@ -14,17 +14,17 @@ function sed = task3_7(pts1, pts2, F)
         l2 = F * x1;  % epipolar line in image 2
         l1 = F' * x2; % epipolar line in image 1
 
-        % compute squared geometric distance pts to their lines
+        % compute squared geometric distance pts to the
         d2 = (x2' * l2)^2 / (l2(1)^2 + l2(2)^2);
         d1 = (x1' * l1)^2 / (l1(1)^2 + l1(2)^2);
         
         % accumulate symmetric error
         sed = sed + d1 + d2;
     end
-    % get the mean sed across all pairs of points
+    % get the mean error across all pairs of points
     sed = sed / N;
 
-    % Display Final sed val
+    % Final sed val
     fprintf('Mean symmetric epipolar distance: %g\n', sed);
 
 end
