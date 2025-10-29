@@ -27,7 +27,7 @@ The dataset includes:
 ### **Task 3.1 – Understanding Camera Parameters**
 - Inspect `Parameters_V1.mat` and `Parameters_V2.mat`.
 - Identify internal (K) and external (R, t) parameters.
-- Verify that the extrinsics form a valid camera matrix `P = K [R | -RC]`.
+- Verify that the extrinsics form a valid camera matrix `P = K [R | t]`.
 - Confirm the relationship between the rotation matrix, quaternion, and camera center.
 
 ### **Task 3.2 – Projecting 3D Mocap Points**

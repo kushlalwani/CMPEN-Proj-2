@@ -1,63 +1,264 @@
 function task3_4()
     
-    % Load Triangulation results
-    triangulationData = load("Project2DataFiles/triangulation_results.mat");
-    triangulationData = triangulationData.Xv_true;
+    % Load camera matrix
+    cam_mat = load('Project2DataFiles/camera_mats.mat');
+    K1 = cam_mat.K1; R1 = cam_mat.R1; C1 = cam_mat.C1;
+    K2 = cam_mat.K2; R2 = cam_mat.R2; C2 = cam_mat.C2;
 
-    % Specify the 3D locations of 3 points on the floor
-    floorPoints = triangulationData([32, 38, 39], :);
+    % Precompute inverses of intrinsics
+    K1inv = inv(K1); K2inv = inv(K2);
 
-    % Specify the 3D locations of 3 points on the wall
-    wallPoints = triangulationData([6, 9, 27], :);
+    % Measure floor points from Image 1
+    floorPoints1 = [
+        977, 934; % Yellow tape intersection R
+        337, 708; % Yellow tape intersection L
+        982, 723; % Floor line
+    ];
 
-    % Compute centroid
+    % Measure floor points from Image 2
+    floorPoints2 = [
+        1712, 697; % Yellow tape intersection R
+        932, 889; % Yellow tape intersection L
+        1131, 638; % Floor line
+    ];
+
+    % Measure wall points from Image 1
+    wallPoints1 = [
+        1430, 219; % Paint corner 1
+        1066, 215; % Paint corner 3
+        1609, 116; % Paint corner 2
+    ];
+
+    % Measure wall points from Image 2
+    wallPoints2 = [
+        612, 109; % Paint corner 1
+        86, 66; % Paint corner 3
+        768, 30; % Paint corner 2
+    ];
+
+    % Back-project Floor pixels to unit rays in world coords
+    d1F = zeros(3,3); d2F = zeros(3,3);
+    for i = 1:3
+        dc1F = K1inv * [floorPoints1(i,1); floorPoints1(i,2); 1];
+        dw1F = R1' * dc1F; d1F(i,:) = (dw1F / norm(dw1F)).';
+        dc2F = K2inv * [floorPoints2(i,1); floorPoints2(i,2); 1];
+        dw2F = R2' * dc2F; d2F(i,:) = (dw2F / norm(dw2F)).';
+    end
+
+    % Closest points between L1(s)=C1+s d1 and L2(t)=C2+t d2
+    floorX = zeros(3,3);
+    for i = 1:3
+        di = d1F(i,:); dj = d2F(i,:);
+        a = 1; b = dot(di,dj); c = 1; 
+        r = C1 - C2; d = dot(di, r); e = dot(dj, r);
+        denom = a*c - b*b; 
+    
+        if abs(denom) < 1e-12   % nearly parallel rays
+            s = 0;
+            t = e / c;
+        else
+            s = (b*e - c*d) / denom;
+            t = (a*e - b*d) / denom;
+        end
+    
+        p1 = C1 + s * di';
+        p2 = C2 + t * dj';
+        floorX(i,:) = ((p1 + p2) / 2).';
+    end
+
+    % Back-project Wall pixels to unit rays in world coords
+    d1 = zeros(3,3); d2 = zeros(3,3);
+    for i = 1:3
+        dc1 = K1inv * [wallPoints1(i,1); wallPoints1(i,2); 1];
+        dw1 = R1' * dc1; d1(i,:) = (dw1 / norm(dw1)).';
+        dc2 = K2inv * [wallPoints2(i,1); wallPoints2(i,2); 1];
+        dw2 = R2' * dc2; d2(i,:) = (dw2 / norm(dw2)).';
+    end
+
+    % Closest points between L1(s)=C1+s d1 and L2(t)=C2+t d2
+    wallX = zeros(3,3);
+    for i = 1:3
+        di = d1(i,:); dj = d2(i,:);
+        a = 1; b = dot(di,dj); c = 1; 
+        r = C1 - C2; d = dot(di, r); e = dot(dj, r);
+        denom = a*c - b*b; 
+    
+        if abs(denom) < 1e-12   % nearly parallel rays
+            s = 0;
+            t = e / c;
+        else
+            s = (b*e - c*d) / denom;
+            t = (a*e - b*d) / denom;
+        end
+    
+        p1 = C1 + s * di';
+        p2 = C2 + t * dj';
+        wallX(i,:) = ((p1 + p2) / 2).';
+    end
+
+    % Derive floor points from floorX values
+    floorPoints = [
+        -1611.5, 1960.9, 4.9;
+        2246.5, 1971.7, -36;
+        -23.7, 19.6, 2.8;
+    ];
+
+    % Derive wall points from wallX values
+    wallPoints = [
+        482, -5562, 2715;
+        3788, -5539, 2756;
+        -742, -5535, 3380;
+    ];
+
+    % Compute centroids
     floorCentroid = mean(floorPoints, 1);
     wallCentroid = mean(wallPoints, 1);
 
-    % Compute vectors in the floor plane
-    floorVectors = [
-      floorPoints(1, :) - floorCentroid;
-      floorPoints(2, :) - floorCentroid;
-      floorPoints(3, :) - floorCentroid
-    ];
+    % Subtract centroids from points
+    floorVectors = floorPoints - floorCentroid;
+    wallVectors = wallPoints - wallCentroid;
 
-    % Compute vectors in the wall plane
-    wallVectors = [
-      wallPoints(1, :) - wallCentroid;
-      wallPoints(2, :) - wallCentroid;
-      wallPoints(3, :) - wallCentroid
-    ];
+    % Derive orthonormal vectors
+    [~, ~, fV] = svd(floorVectors, 0);
+    [~, ~, wV] = svd(wallVectors, 0);
 
-    % Compute the normal vector of the plane
-    normalVector = cross(floorVectors(1, :), floorVectors(2, :));
-    normalVectorW = cross(wallVectors(1, :), wallVectors(2, :));
+    % Derive normal vectors
+    floorNormal = fV(:, 3);
+    wallNormal = wV(:, 3);
 
-    % Normalize normal vector
-    normalVector = normalVector / norm(normalVector);
-    normalVectorW = normalVectorW / norm(normalVectorW);
-    
-    % Compute the constant d
-    d = -dot(normalVector, floorCentroid);
-    dW = -dot(normalVectorW, wallCentroid);
+    % Normalize
+    floorNormal = floorNormal / norm(floorNormal);
+    wallNormal = wallNormal / norm(wallNormal);
+
+    % Compute constant d
+    floord = -dot(floorNormal, floorCentroid);
+    walld = -dot(wallNormal, wallCentroid);
 
     % Fit a 3D plane to the points
-    floorPlane = [normalVector, d];
-    wallPlane = [normalVectorW, dW];
+    floorPlane = [floorNormal', floord];
+    wallPlane = [wallNormal', walld];
+
+    % Display floor plane equation
+    fprintf('\nFloor plane: %.3fx + %.3fy + %.3fz + %.3f = 0\n', floorPlane);
 
     % Verify the floor plane is ~ Z=0
-    % The floor plane has a normal vector of [0, 0, 1]
-    % Check if the computed normal vector is ~ [0, 0, 1]
-    angle = acosd(dot(normalVector, [0, 0, 1]));
-    angleW = acosd(dot(normalVectorW, [1, 0, 0]));
-    % Input eq & better validation
-    fprintf('Computed Normal Vector Angle Difference from Vertical: %.3f degrees\n', angle);
-    fprintf('Computed Normal Vector Angle Difference from Vertical: %.3f degrees\n', angleW);
+    a = -floorPlane(1) / floorPlane(3);
+    b = -floorPlane(2) / floorPlane(3);
+    c = -floorPlane(4) / floorPlane(3);
+    fprintf('Floor plane expressed as Z = %.3fx + %.3fy + %.3f\n', a, b, c);
+
+    % Compute angle between floor plane and [0,0,1]
+    angle = acos(dot(floorNormal, [0, 0, 1]));
+    angle = rad2deg(angle);
+    fprintf('Angle between floor plane and Z-axis is %.3f degrees\n\n', angle);
+
+    % Display wall plane equation
+    fprintf('Wall plane: %.3fx + %.3fy + %.3fz + %.3f = 0\n', wallPlane);
     
-    % Wall Plane Equation
-    fprintf('Wall Plane equation: %.3f*X + %.3f*Y + %.3f*Z + %.3f = 0\n', ...
-        normalVectorW(1,1), normalVectorW(1,2), normalVectorW(1,3), dW);
+    %%% How tall is the doorway? %%%
 
+    % Measure door points from Image 1
+    doorPoints1 = [
+        1129, 290; % Top-right corner
+        1118, 548; % Bottom-left corner
+    ];
 
+    % Measure door points from Image 2
+    doorPoints2 = [
+        225, 176; % Top-right corner
+        254, 512; % Bottom-left corner
+    ];
 
- 
+    % Back-project Door pixels to unit rays in world coords
+    d1D = zeros(2,3); d2D = zeros(2,3);
+    for i = 1:2
+        dc1D = K1inv * [doorPoints1(i,1); doorPoints1(i,2); 1];
+        dw1D = R1' * dc1D; d1D(i,:) = (dw1D / norm(dw1D)).';
+        dc2D = K2inv * [doorPoints2(i,1); doorPoints2(i,2); 1];
+        dw2D = R2' * dc2D; d2D(i,:) = (dw2D / norm(dw2D)).';
+    end
+
+    % Closest points between L1(s)=C1+s d1 and L2(t)=C2+t d2
+    doorX = zeros(2,3);
+    for i = 1:2
+        di = d1D(i,:); dj = d2D(i,:);
+        a = 1; b = dot(di,dj); c = 1; 
+        r = C1 - C2; d = dot(di, r); e = dot(dj, r);
+        denom = a*c - b*b; 
+    
+        if abs(denom) < 1e-12   % nearly parallel rays
+            s = 0;
+            t = e / c;
+        else
+            s = (b*e - c*d) / denom;
+            t = (a*e - b*d) / denom;
+        end
+    
+        p1 = C1 + s * di';
+        p2 = C2 + t * dj';
+        doorX(i,:) = ((p1 + p2) / 2).';
+    end
+
+    % Derive door points from doorX values
+    doorPoints = [
+        3065, -5507, 2134; % Top
+        3029, -5506, -51; % Bottom
+    ];
+
+    % Compute door height assuming floor is Z = 0
+    %doorHeight = abs(doorPoints(1,3) - doorPoints(2,3));
+    doorHeight = doorPoints(1,3);
+    fprintf('\nDoor height: %.0f\n', doorHeight);
+
+    %%% How tall is the person? %%%
+
+    % Measure person points from Image 1
+    personPoints1 = [
+        575, 396; % Top of head
+    ];
+
+    % Measure person points from Image 2
+    personPoints2 = [
+        1039, 345; % Top of head
+    ];
+
+    % Back-project person pixels to unit rays in world coords
+    d1P = zeros(1,3); d2P = zeros(1,3);
+    for i = 1:1
+        dc1P = K1inv * [personPoints1(i,1); personPoints1(i,2); 1];
+        dw1P = R1' * dc1P; d1P(i,:) = (dw1P / norm(dw1P)).';
+        dc2P = K2inv * [personPoints2(i,1); personPoints2(i,2); 1];
+        dw2P = R2' * dc2P; d2P(i,:) = (dw2P / norm(dw2P)).';
+    end
+
+    % Closest points between L1(s)=C1+s d1 and L2(t)=C2+t d2
+    personX = zeros(1,3);
+    for i = 1:1
+        di = d1P(i,:); dj = d2P(i,:);
+        a = 1; b = dot(di,dj); c = 1; 
+        r = C1 - C2; d = dot(di, r); e = dot(dj, r);
+        denom = a*c - b*b; 
+    
+        if abs(denom) < 1e-12   % nearly parallel rays
+            s = 0;
+            t = e / c;
+        else
+            s = (b*e - c*d) / denom;
+            t = (a*e - b*d) / denom;
+        end
+    
+        p1 = C1 + s * di';
+        p2 = C2 + t * dj';
+        personX(i,:) = ((p1 + p2) / 2).';
+    end
+
+    % Derive person points from personX values
+    personPoints = [
+      1425, 1251, 1463;  
+    ];
+
+    % Compute person height assuming floor is Z = 0
+    personHeight = personPoints(1,3);
+    fprintf('Person height: %.0f\n', personHeight);
+
 end
