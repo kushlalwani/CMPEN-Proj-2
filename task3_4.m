@@ -1,7 +1,7 @@
 function task3_4()
     
     % Load camera matrix
-    cam_mat = load('/MATLAB Drive/Project2DataFiles/camera_mats.mat');
+    cam_mat = load('Project2DataFiles/camera_mats.mat');
     K1 = cam_mat.K1; R1 = cam_mat.R1; C1 = cam_mat.C1;
     K2 = cam_mat.K2; R2 = cam_mat.R2; C2 = cam_mat.C2;
 
