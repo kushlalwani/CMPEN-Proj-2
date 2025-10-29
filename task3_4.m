@@ -206,7 +206,59 @@ function task3_4()
     ];
 
     % Compute door height assuming floor is Z = 0
-    doorHeight = abs(doorPoints(1,3) - doorPoints(2,3));
-    fprintf('\nDoor height: %.1f\n', doorHeight);
+    %doorHeight = abs(doorPoints(1,3) - doorPoints(2,3));
+    doorHeight = doorPoints(1,3);
+    fprintf('\nDoor height: %.0f\n', doorHeight);
+
+    %%% How tall is the person? %%%
+
+    % Measure person points from Image 1
+    personPoints1 = [
+        575, 396; % Top of head
+    ];
+
+    % Measure person points from Image 2
+    personPoints2 = [
+        1039, 345; % Top of head
+    ];
+
+    % Back-project person pixels to unit rays in world coords
+    d1P = zeros(1,3); d2P = zeros(1,3);
+    for i = 1:1
+        dc1P = K1inv * [personPoints1(i,1); personPoints1(i,2); 1];
+        dw1P = R1' * dc1P; d1P(i,:) = (dw1P / norm(dw1P)).';
+        dc2P = K2inv * [personPoints2(i,1); personPoints2(i,2); 1];
+        dw2P = R2' * dc2P; d2P(i,:) = (dw2P / norm(dw2P)).';
+    end
+
+    % Closest points between L1(s)=C1+s d1 and L2(t)=C2+t d2
+    personX = zeros(1,3);
+    for i = 1:1
+        di = d1P(i,:); dj = d2P(i,:);
+        a = 1; b = dot(di,dj); c = 1; 
+        r = C1 - C2; d = dot(di, r); e = dot(dj, r);
+        denom = a*c - b*b; 
+    
+        if abs(denom) < 1e-12   % nearly parallel rays
+            s = 0;
+            t = e / c;
+        else
+            s = (b*e - c*d) / denom;
+            t = (a*e - b*d) / denom;
+        end
+    
+        p1 = C1 + s * di';
+        p2 = C2 + t * dj';
+        personX(i,:) = ((p1 + p2) / 2).';
+    end
+
+    % Derive person points from personX values
+    personPoints = [
+      1425, 1251, 1463;  
+    ];
+
+    % Compute person height assuming floor is Z = 0
+    personHeight = personPoints(1,3);
+    fprintf('Person height: %.0f\n', personHeight);
 
 end
