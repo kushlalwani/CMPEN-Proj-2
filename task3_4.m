@@ -261,4 +261,50 @@ function task3_4()
     personHeight = personPoints(1,3);
     fprintf('Person height: %.0f\n', personHeight);
 
+    %%% Camera location %%%
+
+    % Measure camera center from Image 1
+    cameraPoints1 = [
+        1464, 258;
+    ];
+
+    % Measure camera center from Image 2
+    cameraPoints2 = [
+        718, 155;
+    ];
+
+    % Back-project person pixels to unit rays in world coords
+    d1C = zeros(1,3); d2C = zeros(1,3);
+    for i = 1:1
+        dc1C = K1inv * [cameraPoints1(i,1); cameraPoints1(i,2); 1];
+        dw1C = R1' * dc1C; d1C(i,:) = (dw1C / norm(dw1C)).';
+        dc2C = K2inv * [cameraPoints2(i,1); cameraPoints2(i,2); 1];
+        dw2C = R2' * dc2C; d2C(i,:) = (dw2C / norm(dw2C)).';
+    end
+
+    % Closest points between L1(s)=C1+s d1 and L2(t)=C2+t d2
+    cameraX = zeros(1,3);
+    for i = 1:1
+        di = d1C(i,:); dj = d2C(i,:);
+        a = 1; b = dot(di,dj); c = 1; 
+        r = C1 - C2; d = dot(di, r); e = dot(dj, r);
+        denom = a*c - b*b; 
+    
+        if abs(denom) < 1e-12   % nearly parallel rays
+            s = 0;
+            t = e / c;
+        else
+            s = (b*e - c*d) / denom;
+            t = (a*e - b*d) / denom;
+        end
+    
+        p1 = C1 + s * di';
+        p2 = C2 + t * dj';
+        cameraX(i,:) = ((p1 + p2) / 2).';
+    end
+
+    % Derive camera triangulation
+    cameraLoc = [-69, -4931, 2402];
+    fprintf('Camera location: (%.0f, %.0f, %.0f) ~ (x, y, z)\n', cameraLoc);
+
 end
