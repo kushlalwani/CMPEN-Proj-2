@@ -36,7 +36,7 @@ function task3_4()
         768, 30; % Paint corner 2
     ];
 
-    % Back-project Wall pixels to unit rays in world coords
+    % Back-project Floor pixels to unit rays in world coords
     d1F = zeros(3,3); d2F = zeros(3,3);
     for i = 1:3
         dc1F = K1inv * [floorPoints1(i,1); floorPoints1(i,2); 1];
@@ -156,5 +156,57 @@ function task3_4()
     fprintf('Wall plane: %.3fx + %.3fy + %.3fz + %.3f = 0\n', wallPlane);
     
     %%% How tall is the doorway? %%%
+
+    % Measure door points from Image 1
+    doorPoints1 = [
+        1129, 290; % Top-right corner
+        1118, 548; % Bottom-left corner
+    ];
+
+    % Measure door points from Image 2
+    doorPoints2 = [
+        225, 176; % Top-right corner
+        254, 512; % Bottom-left corner
+    ];
+
+    % Back-project Door pixels to unit rays in world coords
+    d1D = zeros(2,3); d2D = zeros(2,3);
+    for i = 1:2
+        dc1D = K1inv * [doorPoints1(i,1); doorPoints1(i,2); 1];
+        dw1D = R1' * dc1D; d1D(i,:) = (dw1D / norm(dw1D)).';
+        dc2D = K2inv * [doorPoints2(i,1); doorPoints2(i,2); 1];
+        dw2D = R2' * dc2D; d2D(i,:) = (dw2D / norm(dw2D)).';
+    end
+
+    % Closest points between L1(s)=C1+s d1 and L2(t)=C2+t d2
+    doorX = zeros(2,3);
+    for i = 1:2
+        di = d1D(i,:); dj = d2D(i,:);
+        a = 1; b = dot(di,dj); c = 1; 
+        r = C1 - C2; d = dot(di, r); e = dot(dj, r);
+        denom = a*c - b*b; 
+    
+        if abs(denom) < 1e-12   % nearly parallel rays
+            s = 0;
+            t = e / c;
+        else
+            s = (b*e - c*d) / denom;
+            t = (a*e - b*d) / denom;
+        end
+    
+        p1 = C1 + s * di';
+        p2 = C2 + t * dj';
+        doorX(i,:) = ((p1 + p2) / 2).';
+    end
+
+    % Derive door points from doorX values
+    doorPoints = [
+        3065, -5507, 2134; % Top
+        3029, -5506, -51; % Bottom
+    ];
+
+    % Compute door height assuming floor is Z = 0
+    doorHeight = abs(doorPoints(1,3) - doorPoints(2,3));
+    fprintf('\nDoor height: %.1f\n', doorHeight);
 
 end
