@@ -1,7 +1,7 @@
 % pass in workspace variables when calling task3_7()
 
 % For testing results from task3_6, pass in pts1_result_3_6, pts2_result_3_6,
-% and F_result_3_6 from workspace
+% and F_result_3_6 from workspace.
 
 function sed = task3_7(pts1, pts2, F)
     N = size(pts1, 1);
