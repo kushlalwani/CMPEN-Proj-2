@@ -1,4 +1,5 @@
 
+% code below is mostly from in class demo
 
 function task3_6()
 
@@ -132,6 +133,7 @@ function task3_6()
     pts1 = [x1 y1];
     pts2 = [x2 y2];
 
+    % store pts and matrix F for later use
     assignin('base', 'pts1_result_3_6', pts1);
     assignin('base', 'pts2_result_3_6', pts2);
     assignin('base', 'F_result_3_6', F);
